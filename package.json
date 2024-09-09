@@ -1,0 +1,19 @@
+{
+  "name": "item-simulator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/Chong-Chongs/item-simulator.git",
+  "author": "Chong-Chongs <jojia1211@gmail.com>",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@prisma/client": "^5.19.1",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^5.19.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
