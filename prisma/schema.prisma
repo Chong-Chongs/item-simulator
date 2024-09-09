@@ -13,6 +13,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ItemType {
+  TYPE1
+  TYPE2
+  TYPE3
+  TYPE4
+  TYPE5
+}
 
 // 유저 계정 테이블
 // JWT 인증
@@ -27,6 +34,7 @@ model Users{
   name String @unique @map("name") // 한 이름으로 하나의 계정만 생성 가능. 
   email String @unique @map("email") // 한 이메일로 하나의 계정만 생성 가능.
   
+  characters Character[]
   
   @@map("Users")
 }
@@ -45,6 +53,10 @@ model Character{
   int Int @default(10) @map("int") // 캐릭터 생성시 기본값으로 10이 할당되어야 한다.
   luk Int @default(10) @map("luk") // 캐릭터 생성시 기본값으로 10이 할당되어야 한다.
 
+  user Users @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  inventoryItems Inventory[] 
+  equipmentItems Equipment[]
+
   @@map("Character")
 }
 
@@ -53,7 +65,7 @@ model Character{
 model Item {
   itemId Int @id @default(autoincrement()) @map("itemId")
   itemName String @unique @map("itemName") // 아이템 이름은 중복 될수 없다.
-  itemType Int @map("itemType") // 캐릭터는 하나의 아이템 타입만 장착가능 (ex. 만약 1~ 5번 타입의 아이템이 있다면 타입별로 하나 씩 장착 가능)
+  itemType ItemType @map("itemType") // 캐릭터는 하나의 아이템 타입만 장착가능 
   attack Int? @map("attack") // 아이템 공격력 수치
   str Int? @map("str") // 아이템 힘 수치
   dex Int? @map("dex") // 아이템 덱스 수치
@@ -61,6 +73,9 @@ model Item {
   luk Int? @map("luk") // 아이템 럭 수치
   itemInfo String? @db.Text @map("itemInfo") // 아이템 설명
   itemPrice Int? @map("itemPrice") // 아이템 가격
+
+  inventoryItems Inventory[]
+  equipmentItems Equipment[]
 
   @@map("Item")
 }
@@ -70,7 +85,7 @@ model Item {
 model Inventory {
   inventoryId Int @id @default(autoincrement()) @map("inventoryId")
   characterId Int @map("characterId") // 어떤 유저 캐릭터의 인벤토리인지
-  inventoryNumber Int @default(autoincrement()) @map("inventoryNumber") // 인벤토리에 아이템이 몇번째 칸에 있는지 나타내는 넘버 캐릭터 테이블에서 인벤토리 최대 용량이 10으로 설정 되어있다면 10개의 아이템 까지만 얻을수 있음
+  inventoryNumber Int @map("inventoryNumber") // 인벤토리에 아이템이 몇번째 칸에 있는지 나타내는 넘버 캐릭터 테이블에서 인벤토리 최대 용량이 10으로 설정 되어있다면 10개의 아이템 까지만 얻을수 있음
   itemId Int @map("itemId") // 어떤 아이템의 아이디 인지
   itemName String @map("itemName") // 아이템 아이디에 맞는 아이템의 이름
   attack Int? @map("attack") // 아이템 공격력 수치 (그 아이템 아이디에 맞는 스텟)
@@ -78,8 +93,11 @@ model Inventory {
   dex Int? @map("dex") // 아이템 덱스 수치 (그 아이템 아이디에 맞는 스텟)
   int Int? @map("int") // 아이템 인트 수치 (그 아이템 아이디에 맞는 스텟)
   luk Int? @map("luk") // 아이템 럭 수치 (그 아이템 아이디에 맞는 스텟)
-  itemType Int @map("itemType") // 아이템 아이디에 맞는 타입(타입은 1번 타입부터 5번 타입 까지 있다. 캐릭터는 타입별 최대 1개씩만 장착 가능하다.)
   
+  character Character @relation(fields: [characterId], references: [characterId], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
+
+  @@unique([characterId, inventoryNumber])
   @@map("Inventory")
 }
 
@@ -89,9 +107,13 @@ model Equipment{
   equipmentId Int @id @default(autoincrement()) @map("equipmentId")
   characterId Int @map("characterId") // 어떤 캐릭터의 장비창인지 
   itemId Int @map("itemId") // 아이템 아이디 
-  itemName String @map("itemName") // 아이템 아이디에 맞는 아이템 이름
-  itemType Int @map("itemType") // 장비 타입 번호는 번호당 1개만 장착이 가능 하고 장비타입의 번호는 1번 ~ 5번 까지 있다 ( 즉 한 캐릭터당 1번 ~ 5번까지 1개씩 장착 가능 )
+  itemType ItemType @map("itemType") // 장비 타입 번호는 번호당 1개만 장착이 가능 하고 장비타입의 번호는 1번 ~ 5번 까지 있다 ( 즉 한 캐릭터당 1번 ~ 5번까지 1개씩 장착 가능 )
 
+  character Character @relation(fields: [characterId], references: [characterId], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
+
+  @@unique([characterId, itemId])
+  @@unique([characterId, itemType])
   @@map("Equipment")
 }
 
