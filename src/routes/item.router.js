@@ -16,6 +16,14 @@ router.post("/item", async (req, res) => {
       return res.status(400).json({ message: "아이템 이름과 타입은 필수 항목입니다." });
     }
 
+    const existingItem = await prisma.item.findUnique({
+      where: { itemName },
+    });
+
+    if (existingItem) {
+      return res.status(400).json({ message: "아이템 이름이 중복되었습니다." });
+    }
+
     const newItem = await prisma.item.create({
       data: {
         itemName,

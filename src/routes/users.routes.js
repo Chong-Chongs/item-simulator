@@ -12,23 +12,29 @@ const prisma = new PrismaClient();
 router.post("/sign-up", async (req, res) => {
   const { Id, password, name, email } = req.body;
 
-  if (!/^[a-z0-9]+$/.test(Id))
+  if (!/^[a-z0-9]+$/.test(Id)) {
     return res.status(400).json({ message: "아이디는 영문 소문자와 숫자의 조합이어야 합니다." });
+  }
 
-  if (password.length < 6)
+  if (password.length < 6) {
     return res.status(400).json({ message: "비밀번호는 최소 6자리 이상이어야 합니다." });
-
-  const hashedPassword = await bcrypt.hash(password, 10);
+  }
 
   try {
+    const existingUser = await prisma.users.findUnique({ where: { Id } });
+    if (existingUser) {
+      return res.status(400).json({ message: "이미 존재하는 아이디입니다." });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     await prisma.users.create({
       data: { Id, password: hashedPassword, name, email },
     });
     res.status(200).json({ message: "회원가입에 성공하였습니다." });
   } catch (error) {
-    res.status(400).json({
-      message: "회원가입 실패하셨습니다. Id, password, name, email을 모두 작성해주세요. ",
-    });
+    res
+      .status(400)
+      .json({ message: "회원가입 실패하셨습니다. Id, password, name, email을 모두 작성해주세요." });
   }
 });
 
