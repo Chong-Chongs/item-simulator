@@ -162,11 +162,11 @@ router.put("/item/:id", async (req, res) => {
       data: {
         itemName: itemName || AmendItem.itemName,
         itemRating: itemRating || AmendItem.itemRating,
-        attack: attack || AmendItem.attack,
-        str: str || AmendItem.str,
-        dex: dex || AmendItem.dex,
-        int: int || AmendItem.int,
-        luk: luk || AmendItem.luk,
+        attack: attack !== undefined ? attack : null, // 값을 할당하지 않으면 null 할당
+        str: str !== undefined ? str : null, // 값을 할당하지 않으면 null 할당
+        dex: dex !== undefined ? dex : null, // 값을 할당하지 않으면 null 할당
+        int: int !== undefined ? int : null, // 값을 할당하지 않으면 null 할당
+        luk: luk !== undefined ? luk : null, // 값을 할당하지 않으면 null 할당
         itemInfo: itemInfo || AmendItem.itemInfo,
       },
     });
