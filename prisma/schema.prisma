@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,6 +7,104 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Users {
+  userId     Int         @id @default(autoincrement()) @map("userId")
+  Id         String      @unique @map("Id")
+  password   String      @map("password")
+  name       String      @map("name")
+  email      String      @unique @map("email")
+  characters Character[]
+
+  @@map("Users")
+}
+
+model Character {
+  characterId    Int         @id @default(autoincrement()) @map("characterId")
+  userId         Int         @map("userId")
+  name           String      @unique @map("name")
+  inventorySlot  Int         @default(5) @map("inventorySlot")
+  gold           Int         @default(10000) @map("gold")
+  attack         Int         @default(100) @map("attack")
+  str            Int         @default(10) @map("str")
+  dex            Int         @default(10) @map("dex")
+  int            Int         @default(10) @map("int")
+  luk            Int         @default(10) @map("luk")
+  user           Users       @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  equipmentItems Equipment[]
+  inventoryItems Inventory[]
+
+  @@index([userId], map: "Character_userId_fkey")
+  @@map("Character")
+}
+
+model Item {
+  itemId         Int         @id @default(autoincrement()) @map("itemId")
+  itemName       String      @unique @map("itemName")
+  itemType       ItemType    @map("itemType")
+  itemRating     String      @map("itemRating")
+  attack         Int?        @map("attack")
+  str            Int?        @map("str")
+  dex            Int?        @map("dex")
+  int            Int?        @map("int")
+  luk            Int?        @map("luk")
+  itemInfo       String?     @map("itemInfo") @db.Text
+  itemPrice      Int?        @map("itemPrice")
+  itemCode       Int         @unique @map("itemCode")
+
+  equipmentItems Equipment[]
+  inventoryItems Inventory[]
+
+  @@map("Item")
+}
+
+model Inventory {
+  inventoryId     Int       @id @default(autoincrement()) @map("inventoryId")
+  userId          Int       @map("userId")
+  characterId     Int       @map("characterId")
+  inventoryNumber Int       @map("inventoryNumber")
+  itemId          Int       @map("itemId")
+  itemName        String    @map("itemName")
+  itemType        ItemType  @map("itemType")
+  itemCode        Int       @map("itemCode")
+  attack          Int?      @map("attack")
+  str             Int?      @map("str")
+  dex             Int?      @map("dex")
+  int             Int?      @map("int")
+  luk             Int?      @map("luk")
+  itemRating      String    @map("itemRating")
+
+  character       Character @relation(fields: [characterId], references: [characterId], onDelete: Cascade)
+  item            Item      @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
+
+  @@unique([characterId, inventoryNumber])
+  @@index([itemId], map: "Inventory_itemId_fkey")
+  @@map("Inventory")
+}
+
+model Equipment {
+  equipmentId Int       @id @default(autoincrement()) @map("equipmentId")
+  userId      Int       @map("userId")
+  characterId Int       @map("characterId")
+  itemId      Int       @map("itemId")
+  itemName    String    @map("itemName")
+  itemType    ItemType  @map("itemType")
+  itemCode    Int       @map("itemCode")
+  attack      Int?      @map("attack")
+  str         Int?      @map("str")
+  dex         Int?      @map("dex")
+  int         Int?      @map("int")
+  luk         Int?      @map("luk")
+  itemRating  String    @map("itemRating")
+
+  character   Character @relation(fields: [characterId], references: [characterId], onDelete: Cascade)
+  item        Item      @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
+
+  @@unique([characterId, itemType])
+  @@unique([characterId, itemId])
+  @@index([itemId], map: "Equipment_itemId_fkey")
+  @@map("Equipment")
+}
+
 enum ItemType {
   TYPE1
   TYPE2
@@ -20,100 +112,3 @@ enum ItemType {
   TYPE4
   TYPE5
 }
-
-// 유저 계정 테이블
-// JWT 인증
-// AccassToken 사용
-// refreshToken 사용
-// 유저 정보를 바탕으로 아이디와 비밀번호를 입력해 로그인 한다 (로그인 API) 계정 정보가 맞지않으면 에러메세지 출력 (ex. id 가 일치하지 않습니다)
-
-model Users{
-  userId Int @id @default(autoincrement()) @map("userId")
-  Id String @unique @map("Id") // 영문 숫자 조합으로 해야한다. 다른 계정과 아이디가 중복이 될수 없다. 
-  password String @map("password") // 해싱된 값으로 컬럼에서 보여야한다. 비밀번호 길이는 최소 6글자. 
-  name String @unique @map("name") // 한 이름으로 하나의 계정만 생성 가능. 
-  email String @unique @map("email") // 한 이메일로 하나의 계정만 생성 가능.
-  
-  characters Character[]
-  
-  @@map("Users")
-}
-
-// 캐릭터 테이블
-
-model Character{
-  characterId Int @id @default(autoincrement()) @map("characterId")
-  userId Int @map("userId") // 어떤 유저의ID가 이 캐릭터를 소유하고 있는지를 나타낸다. 
-  name String @unique @map("name") // 캐릭터 닉네임
-  inventory Int @default(10) @map("inventory") // 캐릭터 생성시 인벤토리 최대 공간이 기본값으로 10이 할당되어야 한다. (10개 이상의 아이템을 가질수 없다.)
-  gold Int @default(10000) @map("gold") // 캐릭터 생성시 기본값으로 10000골드가 할당되어야 한다.
-  attack Int @default(100) @map("attack") // 캐릭터 생성시 기본값으로 100이 할당되어야 한다.
-  str Int @default(10) @map("str") // 캐릭터 생성시 기본값으로 10이 할당되어야 한다.
-  dex Int @default(10) @map("dex") // 캐릭터 생성시 기본값으로 10이 할당되어야 한다.
-  int Int @default(10) @map("int") // 캐릭터 생성시 기본값으로 10이 할당되어야 한다.
-  luk Int @default(10) @map("luk") // 캐릭터 생성시 기본값으로 10이 할당되어야 한다.
-
-  user Users @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  inventoryItems Inventory[] 
-  equipmentItems Equipment[]
-
-  @@map("Character")
-}
-
-// 아이템 테이블
-
-model Item {
-  itemId Int @id @default(autoincrement()) @map("itemId")
-  itemName String @unique @map("itemName") // 아이템 이름은 중복 될수 없다.
-  itemType ItemType @map("itemType") // 캐릭터는 하나의 아이템 타입만 장착가능 
-  attack Int? @map("attack") // 아이템 공격력 수치
-  str Int? @map("str") // 아이템 힘 수치
-  dex Int? @map("dex") // 아이템 덱스 수치
-  int Int? @map("int") // 아이템 인트 수치
-  luk Int? @map("luk") // 아이템 럭 수치
-  itemInfo String? @db.Text @map("itemInfo") // 아이템 설명
-  itemPrice Int? @map("itemPrice") // 아이템 가격
-
-  inventoryItems Inventory[]
-  equipmentItems Equipment[]
-
-  @@map("Item")
-}
-
-// 캐릭터 인벤토리 테이블
-
-model Inventory {
-  inventoryId Int @id @default(autoincrement()) @map("inventoryId")
-  characterId Int @map("characterId") // 어떤 유저 캐릭터의 인벤토리인지
-  inventoryNumber Int @map("inventoryNumber") // 인벤토리에 아이템이 몇번째 칸에 있는지 나타내는 넘버 캐릭터 테이블에서 인벤토리 최대 용량이 10으로 설정 되어있다면 10개의 아이템 까지만 얻을수 있음
-  itemId Int @map("itemId") // 어떤 아이템의 아이디 인지
-  itemName String @map("itemName") // 아이템 아이디에 맞는 아이템의 이름
-  attack Int? @map("attack") // 아이템 공격력 수치 (그 아이템 아이디에 맞는 스텟)
-  str Int? @map("str") // 아이템 힘 수치 (그 아이템 아이디에 맞는 스텟)
-  dex Int? @map("dex") // 아이템 덱스 수치 (그 아이템 아이디에 맞는 스텟)
-  int Int? @map("int") // 아이템 인트 수치 (그 아이템 아이디에 맞는 스텟)
-  luk Int? @map("luk") // 아이템 럭 수치 (그 아이템 아이디에 맞는 스텟)
-  
-  character Character @relation(fields: [characterId], references: [characterId], onDelete: Cascade)
-  item Item @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
-
-  @@unique([characterId, inventoryNumber])
-  @@map("Inventory")
-}
-
-// 캐릭터 장비창 테이블
-
-model Equipment{
-  equipmentId Int @id @default(autoincrement()) @map("equipmentId")
-  characterId Int @map("characterId") // 어떤 캐릭터의 장비창인지 
-  itemId Int @map("itemId") // 아이템 아이디 
-  itemType ItemType @map("itemType") // 장비 타입 번호는 번호당 1개만 장착이 가능 하고 장비타입의 번호는 1번 ~ 5번 까지 있다 ( 즉 한 캐릭터당 1번 ~ 5번까지 1개씩 장착 가능 )
-
-  character Character @relation(fields: [characterId], references: [characterId], onDelete: Cascade)
-  item Item @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
-
-  @@unique([characterId, itemId])
-  @@unique([characterId, itemType])
-  @@map("Equipment")
-}
-
