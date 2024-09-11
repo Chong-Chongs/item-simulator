@@ -144,7 +144,7 @@ router.get("/item/:id", async (req, res) => {
 // 아이템 정보 수정
 router.put("/item/:id", async (req, res) => {
   const { id } = req.params;
-  const { itemName, attack, str, dex, int, luk, itemInfo } = req.body;
+  const { itemName, attack, str, dex, int, luk, itemRating, itemInfo } = req.body;
 
   try {
     // 요청 ID의 아이템 존재하는지 확인
@@ -161,6 +161,7 @@ router.put("/item/:id", async (req, res) => {
       where: { itemId: +id },
       data: {
         itemName: itemName || AmendItem.itemName,
+        itemRating: itemRating || AmendItem.itemRating,
         attack: attack || AmendItem.attack,
         str: str || AmendItem.str,
         dex: dex || AmendItem.dex,
