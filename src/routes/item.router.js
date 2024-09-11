@@ -127,6 +127,7 @@ router.get("/item/:id", async (req, res) => {
         itemRating: true,
         itemInfo: true,
         itemCode: true,
+        item,
       },
     });
 
@@ -137,6 +138,43 @@ router.get("/item/:id", async (req, res) => {
     res.status(200).json(item);
   } catch (error) {
     res.status(400).json({ message: "아이템 정보를 불러오는 데 실패하였습니다." });
+  }
+});
+
+// 아이템 정보 수정
+router.put("/item/:id", async (req, res) => {
+  const { id } = req.params;
+  const { itemName, attack, str, dex, int, luk, itemInfo } = req.body;
+
+  try {
+    // 요청 ID의 아이템 존재하는지 확인
+    const AmendItem = await prisma.item.findUnique({
+      where: { itemId: +id },
+    });
+
+    if (!AmendItem) {
+      return res.status(404).json({ message: "해당 ID의 아이템이 존재하지 않습니다." });
+    }
+
+    // 아이템 정보 수정 (여기서 수정 된 값이 없으면 기존데이터 사용)
+    const updateItem = await prisma.item.update({
+      where: { itemId: +id },
+      data: {
+        itemName: itemName || AmendItem.itemName,
+        attack: attack || AmendItem.attack,
+        str: str || AmendItem.str,
+        dex: dex || AmendItem.dex,
+        int: int || AmendItem.int,
+        luk: luk || AmendItem.luk,
+        itemInfo: itemInfo || AmendItem.itemInfo,
+      },
+    });
+
+    res
+      .status(200)
+      .json({ updateItem, message: "변경한 아이템 정보가 정상적으로 변경되었습니다." });
+  } catch (error) {
+    res.status(400).json({ message: "아이템 정보 수정에 실패하였습니다." });
   }
 });
 
