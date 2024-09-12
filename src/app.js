@@ -9,6 +9,7 @@ import equimentRouter from "./routes/equiment.router.js";
 
 dotenv.config();
 const app = express();
+const PORT = 1019;
 
 app.use(express.json());
 app.use(cookieParser());
@@ -19,8 +20,8 @@ app.use("/api", itemRouter);
 app.use("/api", inventoryRouter);
 app.use("/api", equimentRouter);
 
-app.listen(process.env.PORT, () => {
-  console.log(`서버가 ${process.env.PORT} 포트에서 실행 중입니다.`);
+app.listen(PORT, () => {
+  console.log(`서버가 ${PORT} 포트에서 실행 중입니다.`);
 });
 
 export default app;
